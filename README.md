@@ -1,4 +1,4 @@
-# GO simple multi table search #
+# Simple multi table search by Golang #
 
 ## About ##
 
