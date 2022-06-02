@@ -10,8 +10,13 @@ import (
 
 var SearchParam model.SearchParamType
 
-func Search(context *gin.Context) map[string]interface{} {
-	SearchParam = helper.InitSearchSearchParam(context)
+func Search(context *gin.Context) model.ApiResponse {
+	initSearchParam, apiResponse := helper.InitSearchParam(context)
+	if apiResponse != nil {
+		return apiResponse
+	}
+
+	SearchParam = initSearchParam
 	tableNames := SearchParam.GetTableNames()
 
 	result := make(map[string]interface{})
@@ -32,7 +37,7 @@ func Search(context *gin.Context) map[string]interface{} {
 		result[searchTableResult.Identifier] = searchTableResult.Result
 	}
 
-	return result
+	return model.ApiResponseType{Result: result}
 }
 
 func searchInTable(
@@ -41,16 +46,32 @@ func searchInTable(
 	searchTable model.SearchTableType,
 ) {
 	query := storage.GetQuery(searchTable)
-	rows, err := storage.GetDB().Query(query)
+	rows, errQuery := storage.GetDB().Query(query)
 
-	if err != nil {
-		panic(err)
+	if errQuery != nil {
+		channel <- model.SearchResultType{
+			Identifier: searchTable.Identifier,
+			Result:     model.IdentifierResultType{Error: "Query error, please check parameters"},
+		}
+		waitGroup.Done()
+
+		return
 	}
 
 	rowsCount := 0
 	var tableResult []interface{}
 
-	columns, _ := rows.Columns()
+	columns, errColumns := rows.Columns()
+	if errColumns != nil {
+		channel <- model.SearchResultType{
+			Identifier: searchTable.Identifier,
+			Result:     model.IdentifierResultType{Error: "Query error, please check parameters"},
+		}
+		waitGroup.Done()
+
+		return
+	}
+
 	count := len(columns)
 	values := make([]interface{}, count)
 	valueFields := make([]interface{}, count)

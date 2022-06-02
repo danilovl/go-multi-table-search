@@ -4,28 +4,57 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
+	"main/internal/constant"
+	"main/internal/factory"
 	"main/internal/model"
+	"strings"
 )
 
-func InitSearchSearchParam(context *gin.Context) model.SearchParamType {
+func InitSearchParam(context *gin.Context) (model.SearchParamType, model.ApiResponse) {
 	SearchParam := model.SearchParamType{}
-	SearchParam.SearchTables = getSearchTables(context)
 
-	return SearchParam
+	searchTables, apiResponse := getSearchTables(context)
+	SearchParam.SearchTables = searchTables
+
+	return SearchParam, apiResponse
 }
 
-func getSearchTables(context *gin.Context) []model.SearchTableType {
+func getSearchTables(context *gin.Context) ([]model.SearchTableType, model.ApiResponse) {
 	var unmarshalSearchTableTypes []model.SearchTableType
 	var searchTableTypes []model.SearchTableType
 
-	body, err := ioutil.ReadAll(context.Request.Body)
-	if err != nil {
-		panic(err)
+	body, errReadBody := ioutil.ReadAll(context.Request.Body)
+	if errReadBody != nil {
+		apiResponse := model.ApiResponseType{
+			ApiError: factory.CreateApiErrorByType(constant.ReadError),
+		}
+
+		return nil, apiResponse
 	}
 
-	json.Unmarshal(body, &unmarshalSearchTableTypes)
+	errUnmarshal := json.Unmarshal(body, &unmarshalSearchTableTypes)
+	if errUnmarshal != nil {
+		apiResponse := model.ApiResponseType{
+			ApiError: factory.CreateApiErrorByType(constant.UnmarshalError),
+		}
+
+		return nil, apiResponse
+	}
+
+	var missingFieldsErrorMassages []string
 
 	for _, searchTableType := range unmarshalSearchTableTypes {
+		missingFields := searchTableType.GetRequiredFieldMissing()
+
+		if len(missingFields) > 0 {
+			missingFieldsErrorMassages = append(
+				missingFieldsErrorMassages,
+				"Please control require fields: "+strings.Join(missingFields[:], ","),
+			)
+
+			continue
+		}
+
 		if searchTableType.Identifier == "" || searchTableType.TableName == "" || len(searchTableType.SelectColumns) == 0 {
 			continue
 		}
@@ -55,5 +84,13 @@ func getSearchTables(context *gin.Context) []model.SearchTableType {
 		searchTableTypes = append(searchTableTypes, searchTableType)
 	}
 
-	return searchTableTypes
+	if len(missingFieldsErrorMassages) > 0 {
+		apiResponse := model.ApiResponseType{
+			ApiError: &model.ApiErrorType{ErrorType: constant.ParamError, ErrorMessage: missingFieldsErrorMassages},
+		}
+
+		return nil, apiResponse
+	}
+
+	return searchTableTypes, nil
 }
