@@ -21,6 +21,6 @@ func (controller MultiTableSearchController) Handler() func(context *gin.Context
 	}
 }
 
-func NewProductController() MultiTableSearchController {
+func NewMultiTableSearchController() MultiTableSearchController {
 	return MultiTableSearchController{}
 }

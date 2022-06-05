@@ -7,6 +7,7 @@ import (
 )
 
 func Init(engine *gin.Engine) {
+	engine.Use(middleware.SecurityHandler())
 	engine.Use(middleware.ErrorHandler())
-	engine.POST("/multi-table-search", controller.NewProductController().Handler())
+	engine.POST("/multi-table-search", controller.NewMultiTableSearchController().Handler())
 }

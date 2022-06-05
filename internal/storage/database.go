@@ -9,7 +9,6 @@ var db *sql.DB
 
 func Initialize(dsn string) {
 	connection, err := sql.Open("mysql", dsn)
-	//defer connection.Close()
 
 	if err != nil {
 		panic(err)

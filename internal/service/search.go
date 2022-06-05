@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
+	"main/internal/config"
 	"main/internal/helper"
 	"main/internal/model"
 	"main/internal/storage"
@@ -46,7 +47,7 @@ func searchInTable(
 	searchTable model.SearchTableType,
 ) {
 	query := storage.GetQuery(searchTable)
-	rows, errQuery := storage.GetDB().Query(query)
+	rows, errQuery := config.GetConfig().Storage.Query(query)
 
 	if errQuery != nil {
 		channel <- model.SearchResultType{

@@ -8,6 +8,7 @@ import (
 
 func main() {
 	config.Init()
+	defer config.GetConfig().Storage.Close()
 
 	engine := gin.Default()
 	router.Init(engine)

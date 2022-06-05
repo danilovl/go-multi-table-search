@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"main/internal/model"
 )
@@ -10,6 +11,7 @@ func ErrorHandler() gin.HandlerFunc {
 		context.Next()
 
 		for _, apiResponse := range context.Errors {
+			fmt.Print(apiResponse)
 			switch apiResponse.Err.(type) {
 			case model.ApiResponseType:
 				statusCode := apiResponse.Err.(model.ApiResponseType).GetStatusCode()

@@ -25,7 +25,6 @@ func (searchTableType SearchTableType) GetRequiredFieldMissing() []string {
 		if fieldValue.String() == "" || fieldValue.Len() == 0 {
 			missingFields = append(missingFields, field)
 		}
-
 	}
 
 	return missingFields
