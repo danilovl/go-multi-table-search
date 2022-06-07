@@ -1,0 +1,12 @@
+version: "3.4"
+
+services:
+  go:
+    build:
+      context: ./
+      dockerfile: ./docker/go/Dockerfile
+    volumes:
+      - .:/build
+    restart: always
+    ports:
+      - "8080:8080"
