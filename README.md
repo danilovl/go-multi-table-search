@@ -6,7 +6,7 @@ Simple multi table search where one query can search in several tables by certai
 
 ### Requirements
 
-* Golang 1.18
+* Golang 1.20
 * SQL DB
 
 ### 1. Installation
